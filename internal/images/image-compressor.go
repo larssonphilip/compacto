@@ -64,7 +64,7 @@ func saveImage(img image.Image, format, outputPath string) error {
 	return err
 }
 
-func CompressPngImage(inputPath, outputPath string, qualityMin, qualityMax, speed int) {
+func CompressPngImage(inputPath, outputPath string, qualityMin, qualityMax, speed int, dither float64) {
 	attributes := imagequant.CreateAttributes()
 	defer attributes.Release()
 
@@ -85,6 +85,13 @@ func CompressPngImage(inputPath, outputPath string, qualityMin, qualityMax, spee
 		error := fmt.Errorf("Failed to quantize image: %w", err)
 		fmt.Println(error)
 		return
+	}
+
+	dithererr := attributes.SetDitheringLevel(qresult, float32(dither))
+
+	if dithererr != nil {
+		error := fmt.Errorf("Failed to set dithering level: %w", dithererr)
+		fmt.Println(error)
 	}
 
 	imgOut, _ := attributes.WriteRemappedImage(qresult, qimg)

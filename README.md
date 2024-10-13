@@ -8,17 +8,12 @@
 - **Adjustable Compression Levels**: Set compression quality to suit your needs.
 - **Fast and Simple**: Works quickly while maintaining quality.
 
-## Planned features
-
-- **Video Compression**: Compress MP4 videos efficiently.
-- **PDF Compression**: Shrink PDF sizes without losing content.
-
 ## Installation
 
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/your-username/compacto.git
+   git clone https://github.com/larssonphilip/compacto.git
    cd compacto
    ```
 
@@ -33,19 +28,7 @@
 ### Compress an Image
 
 ```bash
-./compacto compress-image input.png output.png --quality 80
-```
-
-### Compress a Video
-
-```bash
-./compacto compress-video input.mp4 output.mp4
-```
-
-### Compress a PDF
-
-```bash
-./compacto compress-pdf input.pdf output.pdf
+./compacto compress-image <inputPath> <outputPath>
 ```
 
 ## Options
@@ -56,7 +39,9 @@
 
 ## Coming Soon
 
-Compacto will soon have a GUI for macOS!
+- **Video Compression**: Compress MP4 videos efficiently.
+- **PDF Compression**: Shrink PDF sizes without losing content.
+- **Compacto** will soon have a GUI for macOS!
 
 ## License
 
