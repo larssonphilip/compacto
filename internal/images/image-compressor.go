@@ -20,15 +20,25 @@ func loadImage(filePath string) (image.Image, string, error) {
 	defer file.Close()
 
 	ext := filepath.Ext(filePath)
+
 	switch ext {
 	case ".jpg", ".jpeg":
 		img, err := jpeg.Decode(file)
+		if err != nil {
+			return nil, "", fmt.Errorf("Failed to decode JPEG image: %w", err)
+		}
 		return img, "jpeg", err
 	case ".png":
 		img, err := png.Decode(file)
-		return img, "png", err
+		if err != nil {
+			return nil, "", fmt.Errorf("Failed to decode PNG image: %w", err)
+		}
+		return img, "png", nil
 	case ".gif":
 		img, err := gif.Decode(file)
+		if err != nil {
+			return nil, "", fmt.Errorf("Failed to decode GIF image: %w", err)
+		}
 		return img, "gif", err
 	default:
 		return nil, "", fmt.Errorf("Unsupported image format: %s", ext)
@@ -54,20 +64,30 @@ func saveImage(img image.Image, format, outputPath string) error {
 	return err
 }
 
-func CompressPngImage(inputPath, outputPath string) {
-	att := imagequant.CreateAttributes()
-	defer att.Release()
+func CompressPngImage(inputPath, outputPath string, qualityMin, qualityMax, speed int) {
+	attributes := imagequant.CreateAttributes()
+	defer attributes.Release()
+
+	attributes.SetQuality(qualityMin, qualityMax)
+	attributes.SetSpeed(speed)
 
 	img, format, err := loadImage(inputPath)
 	if err != nil {
-		fmt.Errorf("Failed to load image: %w", err)
+		error := fmt.Errorf("Failed to load image: %w", err)
+		fmt.Println(error)
+		return
 	}
 
-	qimg := att.CreateImage(img, 0.0)
+	qimg := attributes.CreateImage(img, 0.0)
 
-	qresult, _ := att.QuantizeImage(qimg)
+	qresult, err := attributes.QuantizeImage(qimg)
+	if err != nil {
+		error := fmt.Errorf("Failed to quantize image: %w", err)
+		fmt.Println(error)
+		return
+	}
 
-	imgOut, _ := att.WriteRemappedImage(qresult, qimg)
+	imgOut, _ := attributes.WriteRemappedImage(qresult, qimg)
 
 	saveImage(imgOut, format, outputPath)
 }
