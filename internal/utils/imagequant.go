@@ -80,6 +80,55 @@ func kMeans(colors []color.RGBA, k int) []color.RGBA {
 	return centroids
 }
 
+// Floyd-Steinberg dithering
+func ditherImage(img image.Image, palette []color.RGBA) image.Image {
+	bounds := img.Bounds()
+	dithered := image.NewRGBA(bounds)
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			oldPixel := color.RGBAModel.Convert(img.At(x, y)).(color.RGBA)
+			newPixel := findNearestColor(oldPixel, palette)
+			dithered.Set(x, y, newPixel)
+			rQuantError, gQuantError, bQuantError := quantizationError(oldPixel, newPixel)
+
+			spreadError(dithered, x+1, y, rQuantError, gQuantError, bQuantError, 7.0/16.0)
+		}
+	}
+
+	return dithered
+}
+
+func quantizationError(oldPixel, newPixel color.RGBA) (rDiff, gDiff, bDiff int) {
+	rDiff = int(oldPixel.R) - int(newPixel.R)
+	gDiff = int(oldPixel.G) - int(newPixel.G)
+	bDiff = int(oldPixel.B) - int(newPixel.B)
+
+	return rDiff, gDiff, bDiff
+}
+
+func spreadError(img *image.RGBA, x, y int, rError, gError, bError int, factor float64) {
+	if x < 0 || x >= img.Bounds().Max.X || y < 0 || y >= img.Bounds().Max.Y {
+		return
+	}
+
+	originalColor := color.RGBAModel.Convert(img.At(x, y)).(color.RGBA)
+	r := clamp(int(float64(originalColor.R) + float64(rError)*factor))
+	g := clamp(int(float64(originalColor.G) + float64(gError)*factor))
+	b := clamp(int(float64(originalColor.B) + float64(bError)*factor))
+
+	img.Set(x, y, color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: originalColor.A})
+}
+
+func clamp(value int) int {
+	if value < 0 {
+		return 0
+	}
+	if value > 255 {
+		return 255
+	}
+	return value
+}
+
 func remapImageToPalette(img image.Image, palette []color.RGBA) image.Image {
 	bounds := img.Bounds()
 	remapped := image.NewRGBA(bounds)
