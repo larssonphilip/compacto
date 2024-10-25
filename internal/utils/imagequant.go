@@ -89,9 +89,21 @@ func ditherImage(img image.Image, palette []color.RGBA) image.Image {
 			oldPixel := color.RGBAModel.Convert(img.At(x, y)).(color.RGBA)
 			newPixel := findNearestColor(oldPixel, palette)
 			dithered.Set(x, y, newPixel)
+
+			// Calculate the error
 			rQuantError, gQuantError, bQuantError := quantizationError(oldPixel, newPixel)
 
+			// Distributing the error to the right neighbour
 			spreadError(dithered, x+1, y, rQuantError, gQuantError, bQuantError, 7.0/16.0)
+
+			// Distributing the error to the bottom left neighbour
+			spreadError(dithered, x-1, y+1, rQuantError, gQuantError, bQuantError, 3.0/16.0)
+
+			// Distributing the error to the bottom neighbour
+			spreadError(dithered, x, y+1, rQuantError, gQuantError, bQuantError, 5.0/16.0)
+
+			// Distributing the error to the bottom right neighbour
+			spreadError(dithered, x+1, y+1, rQuantError, gQuantError, bQuantError, 1.0/16.0)
 		}
 	}
 
