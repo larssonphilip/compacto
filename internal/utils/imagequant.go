@@ -9,20 +9,23 @@ import (
 )
 
 type ColorCluster struct {
-	Centroid color.RGBA
 	Pixels   []color.RGBA
+	Centroid color.RGBA
 }
 
+// Calculate the distance between two colors
 func colorDistance(color1, color2 color.RGBA) float64 {
-	rmean := float64(color1.R+color2.R) / 2
+	rMean := float64(color1.R+color2.R) / 2
 	r := float64(color1.R - color2.R)
 	g := float64(color1.G - color2.G)
 	b := float64(color1.B - color2.B)
-	return math.Sqrt((((512 + rmean) * r * r) / 256) + 4*g*g + (((767 - rmean) * b * b) / 256))
+
+	// Euclidean distance formula
+	return math.Sqrt((((512 + rMean) * r * r) / 256) + 4*g*g + (((767 - rMean) * b * b) / 256))
 }
 
+// Clusters colors into k clusters using the k-means algorithm
 func kMeans(colors []color.RGBA, k int) []color.RGBA {
-	// rand.Seed(time.Now().UnixNano())
 	rand.NewSource(time.Now().UnixNano())
 	clusters := make([]ColorCluster, k)
 	for i := 0; i < k; i++ {
@@ -80,7 +83,7 @@ func kMeans(colors []color.RGBA, k int) []color.RGBA {
 	return centroids
 }
 
-// Floyd-Steinberg dithering
+// Dithers an image using the Floyd-Steinberg algorithm
 func ditherImage(img image.Image, palette []color.RGBA) image.Image {
 	bounds := img.Bounds()
 	dithered := image.NewRGBA(bounds)
@@ -110,6 +113,7 @@ func ditherImage(img image.Image, palette []color.RGBA) image.Image {
 	return dithered
 }
 
+// Calculate the quantization error between two pixels
 func quantizationError(oldPixel, newPixel color.RGBA) (rDiff, gDiff, bDiff int) {
 	rDiff = int(oldPixel.R) - int(newPixel.R)
 	gDiff = int(oldPixel.G) - int(newPixel.G)
@@ -118,6 +122,7 @@ func quantizationError(oldPixel, newPixel color.RGBA) (rDiff, gDiff, bDiff int) 
 	return rDiff, gDiff, bDiff
 }
 
+// Spread the quantization error to the neighbour pixel
 func spreadError(img *image.RGBA, x, y int, rError, gError, bError int, factor float64) {
 	if x < 0 || x >= img.Bounds().Max.X || y < 0 || y >= img.Bounds().Max.Y {
 		return
@@ -131,6 +136,7 @@ func spreadError(img *image.RGBA, x, y int, rError, gError, bError int, factor f
 	img.Set(x, y, color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: originalColor.A})
 }
 
+// Clamps a value between 0 and 255
 func clamp(value int) int {
 	if value < 0 {
 		return 0
@@ -141,6 +147,7 @@ func clamp(value int) int {
 	return value
 }
 
+// Remap an image to a given palette
 func remapImageToPalette(img image.Image, palette []color.RGBA) image.Image {
 	bounds := img.Bounds()
 	remapped := image.NewRGBA(bounds)
@@ -155,6 +162,7 @@ func remapImageToPalette(img image.Image, palette []color.RGBA) image.Image {
 	return remapped
 }
 
+// Find the nearest color in a palette to a given color
 func findNearestColor(color color.RGBA, palette []color.RGBA) color.RGBA {
 	nearestColor := palette[0]
 	minDistance := colorDistance(color, nearestColor)
